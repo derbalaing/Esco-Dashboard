@@ -6,3 +6,5 @@ psycopg2-binary
 openpyxl
 numpy
 streamlit-option-menu
+streamlit-extras
+python-dotenv
