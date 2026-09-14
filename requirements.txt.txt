@@ -1,0 +1,19 @@
+streamlit
+pandas
+plotly
+sqlalchemy
+psycopg2-binary
+openpyxl
+numpy
+streamlit-option-menu
+
+
+
+
+
+    drivername="postgresql+psycopg2",
+    username="postgres.wotfaslpdzukfskmatxy",
+    password="Sfax@@1985-*",
+    host="aws-0-eu-west-1.pooler.supabase.com",
+    port=5432,
+    database="postgres"
