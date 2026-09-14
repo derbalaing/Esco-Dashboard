@@ -26,7 +26,7 @@ def show_solaire():
             "Analyse Site",
             "Alertes",
             "Gestion Alertes",
-            "Taleau des sites solaires"
+            "Tableau des sites solaires"
         ],
         icons=[
             "bar-chart",
@@ -50,5 +50,5 @@ def show_solaire():
     elif selected == "Gestion Alertes":
         show_gestion()
 
-    elif selected == "Taleau des sites solaires":
+    elif selected == "Tableau des sites solaires":
         show_solar_sites_summary()
