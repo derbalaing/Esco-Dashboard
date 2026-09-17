@@ -7,6 +7,7 @@ from modules.solaires.dashboard_par_site import show
 from modules.solaires.alerte_solaire import show as show_alertes
 from modules.solaires.gestion_alertes import show as show_gestion
 from modules.solaires.dashboard_solar_sites_summary import show_solar_sites_summary
+from modules.solaires.dashboard_solar_recap import show_solar_recap
 
 if st.button("🏠 Retour à l'accueil"):
     st.session_state.module = None
@@ -22,6 +23,7 @@ def show_solaire():
     selected = option_menu(
         menu_title=None,
         options=[
+            "Récap solaire",
             "Dashboard",
             "Analyse Site",
             "Alertes",
@@ -29,6 +31,7 @@ def show_solaire():
             "Tableau des sites solaires"
         ],
         icons=[
+            "bar-chart",
             "bar-chart",
             "geo-alt",
             "bell",
@@ -52,3 +55,6 @@ def show_solaire():
 
     elif selected == "Tableau des sites solaires":
         show_solar_sites_summary()
+
+    elif selected == "Récap solaire":
+        show_solar_recap()
