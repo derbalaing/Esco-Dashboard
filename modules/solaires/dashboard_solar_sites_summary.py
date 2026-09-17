@@ -202,6 +202,7 @@ def load_solar_sites_summary(selected_batch=None):
         s.site_id,
         s.code_site,
         s.site_name,
+        COALESCE(t.team_name, 'Non affectée') AS team_name,
         COALESCE(s.typologie_fms, 'Non défini') AS typologie_fms,
 
         si.installation_date,
@@ -253,6 +254,9 @@ def load_solar_sites_summary(selected_batch=None):
         END AS statut_10j
 
     FROM sites s
+
+    LEFT JOIN teams t
+    ON t.team_id = s.team_id
 
     INNER JOIN solar_installation_clean si
         ON si.site_id = s.site_id
@@ -760,6 +764,7 @@ def show_solar_sites_summary():
         "batch",
         "code_site",
         "site_name",
+        "team_name",
         "installation_date",
         "latest_alert_status",
         "latest_alert_type",
@@ -789,8 +794,28 @@ def show_solar_sites_summary():
         if col in df_filtered.columns
     ]
 
+
+    def highlight_open_alert(row):
+        alert_status = str(row.get("latest_alert_status", "")).strip().upper()
+
+        if alert_status == "OPEN":
+            return [
+                "background-color: #fecaca; color: #7f1d1d; font-weight: bold"
+                for _ in row
+            ]
+
+        return ["" for _ in row]
+
+
+
+    df_table = df_filtered[display_cols].copy()
+
+    styled_table = df_table.style.apply(
+        highlight_open_alert,
+        axis=1
+    )
     st.dataframe(
-        df_filtered[display_cols],
+        styled_table,
         use_container_width=True,
         hide_index=True,
         height=600,
@@ -804,7 +829,15 @@ def show_solar_sites_summary():
                 "Nom site",
                 pinned=True,
                 width="medium"
-            )
+            ),
+            "latest_alert_status": st.column_config.Column(
+                "Statut alerte",
+                width="small"
+            ),
+            "latest_alert_description": st.column_config.Column(
+                "Description alerte",
+                width="large"
+            ),
         }
     )
 
