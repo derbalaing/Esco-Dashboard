@@ -25,7 +25,7 @@ from modules.powercore.app_powercore import show_powercore
 from modules.grid.app_grid import show_grid
 
 st.set_page_config(
-    page_title="ESCO Monitoring",
+    page_title="TWESCO Cameroun Monitoring",
     page_icon="⚡",
     layout="wide"
 )
