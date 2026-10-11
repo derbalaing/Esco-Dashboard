@@ -16,7 +16,7 @@ if "config" in sys.modules:
 
 import streamlit as st
 
-from modules.accueil import accueil
+from modules.accueil_twescocam import accueil
 from modules.solaires.app_solaire import show_solaire
 from modules.genset.app_ge import show_ge
 from modules.batteries.app_batterie import show_batterie
