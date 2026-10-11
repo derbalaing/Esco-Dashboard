@@ -7,4 +7,5 @@ openpyxl
 numpy
 streamlit-option-menu
 streamlit-extras
+XlsxWriter
 python-dotenv
