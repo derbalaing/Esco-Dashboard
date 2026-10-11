@@ -6,6 +6,7 @@ from modules.sites.app_site import show_site
 from modules.batteries.app_batterie import show_batterie
 from modules.powercore.app_powercore import show_powercore
 from modules.grid.app_grid import show_grid
+from modules.project.app_site_actions import show_site_actions, show_site_actions_list_only
 
 def accueil():
 
@@ -13,7 +14,7 @@ def accueil():
 
     st.markdown("## Choisissez le système à superviser")
 
-    col1, col2, col3, col4, col5, col6  = st.columns(6)
+    col1, col2, col3, col4, col5, col6, col7   = st.columns(7)
 
     with col1:
 
@@ -107,7 +108,7 @@ def accueil():
     with col6:
 
         st.image(
-            "assets/powercore.png",
+            "assets/Grid.png",
             use_container_width=True
         )
 
@@ -121,6 +122,22 @@ def accueil():
             st.session_state["module"] = "GRID"
             st.rerun()
 
+    with col7:
+
+        st.image(
+            "assets/Projet.png",
+            use_container_width=True
+        )
+
+        st.subheader("☀️ Project")
+
+        if st.button(
+            "Ouvrir Dashboard Project",
+            use_container_width=True,
+            width=300
+        ):
+            st.session_state["module"] = "Actions sites"
+            st.rerun()
 
 
 
@@ -144,3 +161,6 @@ def accueil():
 
         elif st.session_state["module"] == "GRID":
             show_grid()
+
+        elif st.session_state.module == "Actions sites":
+            show_site_actions()
