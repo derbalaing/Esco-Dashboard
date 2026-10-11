@@ -23,9 +23,12 @@ from modules.batteries.app_batterie import show_batterie
 from modules.sites.app_site import show_site
 from modules.powercore.app_powercore import show_powercore
 from modules.grid.app_grid import show_grid
+from modules.project.app_site_actions import show_site_actions, show_site_actions_list_only
+from streamlit_extras.stylable_container import stylable_container
+
 
 st.set_page_config(
-    page_title="TWESCO Cameroun Monitoring",
+    page_title="ESCO Monitoring Cameroun",
     page_icon="⚡",
     layout="wide"
 )
@@ -169,6 +172,25 @@ if "module" not in st.session_state:
 # Affichage
 if st.session_state.module is None:
     accueil()
+    st.divider()
+    with stylable_container(
+        key="table_suivi_action",
+        css_styles="""
+        {
+            background-color: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.12);
+            border-top: 6px solid #dc2626;
+            margin-bottom:20px;
+        }
+        """
+    ):
+       # Mettre ici le code du tableau
+        show_site_actions_list_only()
+    st.caption("Liste des actions en cours, bloquées, ouvertes ou terminées.")
+    
+
 
 elif st.session_state.module == "SOLAIRE":
     show_solaire()
@@ -187,3 +209,6 @@ elif st.session_state.module == "POWERCORE":
 
 elif st.session_state.module == "GRID":
     show_grid()
+
+elif st.session_state.module == "Actions sites":
+    show_site_actions()
