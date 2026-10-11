@@ -10,7 +10,7 @@ from modules.project.app_site_actions import show_site_actions, show_site_action
 
 def accueil():
 
-    st.title("⚡ ESCO Cameroon analysis Platform")
+    st.title("⚡ TWESCO Cameroon analysis Platform")
 
     st.markdown("## Choisissez le système à superviser")
 
