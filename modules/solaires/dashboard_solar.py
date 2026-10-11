@@ -97,8 +97,17 @@ def show_dashboard():
         )
 
         SELECT
-            k.*,
-            s.*,
+            k.site_id,
+            k.kpi_date,
+            k.installed_power_kwc,
+            k.target_kwh,
+            k.actual_production_kwh,
+            k.performance_percent,
+            k.variance_kwh,
+            k.status,
+            s.code_site,
+            s.site_name,
+            s.team_id,
             COALESCE(sb.batch, 'Non défini') AS batch
         FROM solar_kpi_daily k
         JOIN sites s
@@ -117,20 +126,129 @@ def show_dashboard():
         }
     )
 
-    # Dernière date disponible
-    df["Date"] = pd.to_datetime(df["kpi_date"])
-    last_day = df["Date"].max()
-    st.write(f"Dernière date disponible : {last_day.date()}")
-    df_day = df[df["Date"] == last_day]
+    # Sécurité : éviter les erreurs Pandas si une requête SQL retourne une colonne en double
+    if df.columns.duplicated().any():
+        duplicated_cols = df.columns[df.columns.duplicated()].tolist()
+        st.error(f"Colonnes dupliquées détectées dans la requête KPI : {duplicated_cols}")
+        st.write(df.columns.tolist())
+        st.stop()
+
+    # ==================================================
+    # DERNIERE DATE DISPONIBLE
+    # ==================================================
+
+    query_last_day = """
+    WITH solar_batch AS
+    (
+        SELECT
+            site_id,
+            COALESCE(
+                MAX(NULLIF(TRIM(batch), '')),
+                'Non défini'
+            ) AS batch
+        FROM solar_installations
+        GROUP BY site_id
+    )
+    SELECT
+        MAX(k.kpi_date) AS last_day
+    FROM solar_kpi_daily k
+    LEFT JOIN solar_batch sb
+        ON sb.site_id = k.site_id
+    WHERE
+        (
+            %(selected_batch)s IS NULL
+            OR COALESCE(sb.batch, 'Non défini') = %(selected_batch)s
+        )
+    """
+
+    df_last_day = pd.read_sql(
+        query_last_day,
+        engine,
+        params={
+            "selected_batch": selected_batch_param
+        }
+    )
+
+    if df_last_day.empty or pd.isna(df_last_day.iloc[0]["last_day"]):
+        st.warning("Aucune donnée KPI solaire trouvée.")
+        st.stop()
+
+    last_day = pd.to_datetime(df_last_day.iloc[0]["last_day"]).date()
+
+    st.write(f"Dernière date disponible : {last_day}")
 
 
-    sites_ok = len(df_day[df_day["actual_production_kwh"] > 0])
+    # ==================================================
+    # KPI UNIQUEMENT POUR LA DERNIERE DATE
+    # ==================================================
 
-    sites_zero = len(df_day[df_day["actual_production_kwh"] == 0])
+    query_df_day = """
+    WITH solar_batch AS
+    (
+        SELECT
+            site_id,
+            COALESCE(
+                MAX(NULLIF(TRIM(batch), '')),
+                'Non défini'
+            ) AS batch
+        FROM solar_installations
+        GROUP BY site_id
+    )
+    SELECT
+        k.site_id,
+        k.kpi_date,
+        k.installed_power_kwc,
+        k.target_kwh,
+        k.actual_production_kwh,
+        k.performance_percent,
+        k.variance_kwh,
+        k.status,
+        s.code_site,
+        s.site_name,
+        s.team_id,
+        COALESCE(sb.batch, 'Non défini') AS batch
+    FROM solar_kpi_daily k
+    JOIN sites s
+        ON k.site_id = s.site_id
+    LEFT JOIN solar_batch sb
+        ON sb.site_id = k.site_id
+    WHERE
+        k.kpi_date = %(last_day)s
+        AND (
+            %(selected_batch)s IS NULL
+            OR COALESCE(sb.batch, 'Non défini') = %(selected_batch)s
+        )
+    """
 
-    sites_lostcom = len(df_day[df_day["status"] == "LOSTCOM"])
+    df_day = pd.read_sql(
+        query_df_day,
+        engine,
+        params={
+            "last_day": last_day,
+            "selected_batch": selected_batch_param
+        }
+    )
 
-    avg_prod = df[df["actual_production_kwh"] > 0]["actual_production_kwh"].mean()
+    if df_day.empty:
+        st.warning("Aucun KPI trouvé pour la dernière date.")
+        st.stop()
+
+    sites_ok = (df_day["actual_production_kwh"] > 0).sum()
+    sites_zero = (df_day["actual_production_kwh"] == 0).sum()
+
+    sites_lostcom = (
+        df_day["status"]
+        .fillna("")
+        .astype(str)
+        .str.upper()
+        .str.strip()
+        .eq("LOSTCOM")
+        .sum()
+    )
+
+    avg_prod = df_day[
+        df_day["actual_production_kwh"] > 0
+    ]["actual_production_kwh"].mean()
     
 
     df_kpi = pd.read_sql(
