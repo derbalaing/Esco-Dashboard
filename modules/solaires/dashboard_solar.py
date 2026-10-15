@@ -175,6 +175,18 @@ def show_dashboard():
 
     last_day = pd.to_datetime(df_last_day.iloc[0]["last_day"]).date()
 
+
+    last_day = pd.to_datetime(last_day, errors="coerce")
+    
+    if pd.isna(last_day):
+        st.warning("Aucune date KPI solaire valide disponible.")
+        return
+    
+    last_day = last_day
+
+
+
+    
     st.write(f"Dernière date disponible : {last_day}")
 
 
@@ -401,7 +413,7 @@ def show_dashboard():
         query_sites_alert,
         engine,
         params={
-            "last_day": last_day.date(),
+            "last_day": last_day,
             "selected_batch": selected_batch_param
         }
     )
@@ -420,7 +432,7 @@ def show_dashboard():
         """
     ):
         st.subheader("📋 Sites en LOSTCOM et Production Nulle")
-        st.caption(f"Dernière date disponible : {last_day.date()}")
+        st.caption(f"Dernière date disponible : {last_day}")
 
 
 
@@ -614,7 +626,7 @@ def show_dashboard():
         query_alert_team,
         engine,
         params={
-            "last_day": last_day.date(),
+            "last_day": last_day,
             "selected_batch": selected_batch_param
         }
     )
@@ -633,7 +645,7 @@ def show_dashboard():
         """
     ):
         st.subheader("📊 LOSTCOM et Production nulle par équipe")
-        st.caption(f"Analyse par équipe - Date : {last_day.date()}")
+        st.caption(f"Analyse par équipe - Date : {last_day}")
 
         if df_alert_team.empty:
 
