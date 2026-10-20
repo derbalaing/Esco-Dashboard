@@ -6,6 +6,7 @@ from modules.genset.dashboard_ge import show_dashboard_ge
 from modules.genset.dashboard_ge_par_site import show_ge_site_analysis
 from modules.genset.simulation_site_form import show_site_simulation_form
 from modules.genset.simulation_fuel import show_simulation_fuel
+from modules.genset.dashboard_ge_running_hours import show_ge_running_hours_dashboard
 
 def show_ge():
 
@@ -21,11 +22,14 @@ def show_ge():
             "Analyse GE par site",
             
             "Simulation site / jour",
-            "Simulation fuel /site /jour"
-            "Alarmes GE"
+            "Simulation fuel /site /jour",
+            "Alarmes GE",
+            "Analyse GE Running Hours"
         ],
         icons=[
             "speedometer",
+            "graph-up",
+            "graph-up",
             "graph-up",
             "graph-up",
             "graph-up",
@@ -46,3 +50,6 @@ def show_ge():
         
     elif selected == "Simulation fuel /site /jour":
         show_simulation_fuel()
+
+    elif selected == "Analyse GE Running Hours":
+        show_ge_running_hours_dashboard()
