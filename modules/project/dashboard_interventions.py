@@ -160,6 +160,8 @@ EXPORT_COL_LABELS = {
     "pv_panel_type": "Type de panneaux PV",
     "pv_panel_count": "Nombre de panneaux PV",
     "solar_comment": "Remarque installation solaire",
+    "solar_extension_possible": "Extension solaire possible ?",
+    "solar_extension_comment": "Commentaire extension solaire",
     "last_technical_update_at": "Dernière mise à jour technique",
     "last_reporting_technician": "Dernier technicien intervenant",
     "last_reporting_contact": "Contact du dernier technicien",
@@ -311,6 +313,9 @@ def export_interventions_xlsx(
                         "Suivi du délai": {
                             "EN_RETARD_24H": red_fmt, "EN_COURS": green_fmt,
                         },
+                        "Extension solaire possible ?": {
+                            "OUI": green_fmt, "NON_VERIFIE": neutral_fmt,
+                        },
                     }
                     for header, cases in statuses.items():
                         if header in data.columns:
@@ -405,6 +410,7 @@ def load_intervention_history() -> pd.DataFrame:
                r.genset_type, r.genset_model, r.genset_power_kva, r.genset_comment,
                r.battery_type, r.battery_chemistry, r.battery_element_count, r.battery_comment,
                r.pv_panel_type, r.pv_panel_count, r.solar_comment,
+               r.solar_extension_possible, r.solar_extension_comment,
                r.updated_at AS report_updated_at
         FROM public.site_interventions i
         JOIN public.sites s ON s.site_id=i.site_id
@@ -523,6 +529,7 @@ def save_technical_report(intervention_id: int, report: dict):
         "powercore_comment", "genset_type", "genset_model", "genset_power_kva",
         "genset_comment", "battery_type", "battery_chemistry", "battery_element_count",
         "battery_comment", "pv_panel_type", "pv_panel_count", "solar_comment",
+        "solar_extension_possible", "solar_extension_comment",
     ]
     placeholders = ", ".join(":" + c for c in cols)
     set_sql = ",\n".join(f"{col}=EXCLUDED.{col}" for col in cols)
@@ -724,6 +731,26 @@ def technical_tab(active: pd.DataFrame):
                                           placeholder="Non vérifié")
         solar_comment = st.text_area("Remarque installation solaire",
                                       value=text_default(defaults, "solar_comment"))
+
+        st.markdown("##### Potentiel d'extension solaire")
+        extension_choices = ["NON_VERIFIE", "OUI", "NON"]
+        extension_default = text_default(defaults, "solar_extension_possible").strip().upper()
+        if extension_default not in extension_choices:
+            extension_default = "NON_VERIFIE"
+        extension_possible = st.selectbox(
+            "Y a-t-il d’espace disponible pour une extension de l’installation solaire ?",
+            extension_choices,
+            index=extension_choices.index(extension_default),
+            format_func=lambda value: {
+                "NON_VERIFIE": "Non vérifié", "OUI": "Oui", "NON": "Non",
+            }[value],
+            help="Indiquez si la surface disponible permet une extension photovoltaïque.",
+        )
+        extension_comment = st.text_area(
+            "Commentaire sur la possibilité d'extension solaire",
+            value=text_default(defaults, "solar_extension_comment"),
+            placeholder="Ex. : Toit disponible pour 12 PV supplémentaires ; vérifier structure, ombrage et orientation.",
+        )
         submit = st.form_submit_button("💾 Enregistrer le relevé technique", type="primary")
 
     if submit:
@@ -751,6 +778,8 @@ def technical_tab(active: pd.DataFrame):
             "pv_panel_type": pv_type,
             "pv_panel_count": panel_count,
             "solar_comment": safe_text(solar_comment),
+            "solar_extension_possible": extension_possible,
+            "solar_extension_comment": safe_text(extension_comment),
         }
         try:
             save_technical_report(int(visit_id), report)
@@ -819,7 +848,8 @@ def live_monitor():
         "solar_charger_count", "solar_charger_out_of_service", "powercore_comment",
         "genset_type", "genset_model", "genset_power_kva", "genset_comment",
         "battery_type", "battery_chemistry", "battery_element_count", "battery_comment",
-        "pv_panel_type", "pv_panel_count", "solar_comment", "last_technical_update_at",
+        "pv_panel_type", "pv_panel_count", "solar_comment",
+        "solar_extension_possible", "solar_extension_comment", "last_technical_update_at",
         "last_reporting_technician", "last_reporting_contact",
     ]
     cols = [c for c in cols if c in df.columns]
@@ -833,6 +863,8 @@ def live_monitor():
                      "battery_element_count": "Nombre éléments batteries",
                      "pv_panel_type": "Type PV",
                      "pv_panel_count": "Nombre PV",
+                     "solar_extension_possible": "Extension solaire ?",
+                     "solar_extension_comment": "Commentaire extension",
                  })
     # Export des données EXACTEMENT filtrées et affichées ci-dessus.
     # Chaque onglet Excel conserve le même périmètre de codes sites.
